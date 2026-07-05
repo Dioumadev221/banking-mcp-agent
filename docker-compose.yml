@@ -1,0 +1,32 @@
+services:
+  discovery-service:
+    build: ./discovery-service
+    ports:
+      - "8761:8761"
+
+  customer-service:
+    build: ./customer-service
+    ports:
+      - "8056:8056"
+    environment:
+      - EUREKA_SERVER=http://discovery-service:8761/eureka/
+    depends_on:
+      - discovery-service
+
+  ebank-service:
+    build: ./ebank-service
+    ports:
+      - "8057:8057"
+    environment:
+      - EUREKA_SERVER=http://discovery-service:8761/eureka/
+    depends_on:
+      - discovery-service
+
+  gateway-service:
+    build: ./getway-servicce
+    ports:
+      - "8058:8058"
+    environment:
+      - EUREKA_SERVER=http://discovery-service:8761/eureka/
+    depends_on:
+      - discovery-service
