@@ -9,6 +9,7 @@ services:
     ports:
       - "8056:8056"
     environment:
+      - CONFIG_SERVER=http://host.docker.internal:8888
       - EUREKA_SERVER=http://discovery-service:8761/eureka/
     depends_on:
       - discovery-service
@@ -18,6 +19,7 @@ services:
     ports:
       - "8057:8057"
     environment:
+      - CONFIG_SERVER=http://host.docker.internal:8888
       - EUREKA_SERVER=http://discovery-service:8761/eureka/
     depends_on:
       - discovery-service
@@ -27,6 +29,7 @@ services:
     ports:
       - "8058:8058"
     environment:
+      - CONFIG_SERVER=http://host.docker.internal:8888
       - EUREKA_SERVER=http://discovery-service:8761/eureka/
     depends_on:
       - discovery-service
