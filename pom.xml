@@ -2,53 +2,34 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <parent>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-parent</artifactId>
-        <version>4.1.0</version>
-        <relativePath/> <!-- lookup parent from repository -->
-    </parent>
+
     <groupId>com.diouma</groupId>
-    <artifactId>Micro-services-SpringCloud-SpringAI-MCP</artifactId>
+    <artifactId>banking-platform</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>Micro-services-SpringCloud-SpringAI-MCP</name>
-    <description>Micro-services-SpringCloud-SpringAI-MCP</description>
-    <url/>
+    <packaging>pom</packaging>
+
+    <name>banking-platform</name>
+    <description>Microservices banking platform with an AI agent acting through MCP</description>
+
+    <!--
+      Aggregator only: it builds and tests every service with a single command
+      and is not their parent - each service keeps spring-boot-starter-parent,
+      so it can still be built and deployed on its own.
+    -->
+    <modules>
+        <module>config-service</module>
+        <module>discovery-service</module>
+        <module>gateway-service</module>
+        <module>customer-service</module>
+        <module>ebank-service</module>
+        <module>agent-service</module>
+    </modules>
+
     <licenses>
-        <license/>
+        <license>
+            <name>MIT License</name>
+            <url>https://opensource.org/licenses/MIT</url>
+        </license>
     </licenses>
-    <developers>
-        <developer/>
-    </developers>
-    <scm>
-        <connection/>
-        <developerConnection/>
-        <tag/>
-        <url/>
-    </scm>
-    <properties>
-        <java.version>25</java.version>
-    </properties>
-    <dependencies>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
-        </dependency>
-    </dependencies>
-
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-            </plugin>
-        </plugins>
-    </build>
 
 </project>

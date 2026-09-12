@@ -6,21 +6,31 @@ on:
   pull_request:
 
 jobs:
-  tests:
+  build:
+    name: Build and test every service
     runs-on: ubuntu-latest
+
     steps:
-      - name: Recuperer le code
+      - name: Check out the code
         uses: actions/checkout@v4
 
-      - name: Installer Java 25
+      - name: Set up Java 25
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '25'
           cache: maven
 
-      - name: Tests customer-service
-        run: mvn -f customer-service/pom.xml test -Dtest=CustomerServiceTest
+      # The aggregator POM builds and tests all six services in one command.
+      # Naming individual test classes, as this workflow used to, silently
+      # skips every test added afterwards.
+      - name: Build and test
+        run: ./mvnw -B verify
 
-      - name: Tests ebank-service
-        run: mvn -f ebank-service/pom.xml test -Dtest=EbankServiceTest
+      - name: Publish test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: surefire-reports
+          path: '**/target/surefire-reports/*.xml'
+          if-no-files-found: warn

@@ -1,27 +1,35 @@
 package com.diouma.customerservice.service;
 
 import com.diouma.customerservice.entities.Customer;
-import com.diouma.customerservice.repository.CustomerRepostory;
+import com.diouma.customerservice.exception.CustomerNotFoundException;
+import com.diouma.customerservice.repository.CustomerRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Service
 public class CustomerService {
-    private CustomerRepostory customerRepostory;
 
-    public CustomerService(CustomerRepostory customerRepostory) {
-        this.customerRepostory = customerRepostory;
-    }
-    public List<Customer> getAllCustomer() {
-        return customerRepostory.findAll();
+    private final CustomerRepository customerRepository;
+
+    public CustomerService(CustomerRepository customerRepository) {
+        this.customerRepository = customerRepository;
     }
 
+    @Transactional(readOnly = true)
+    public List<Customer> getAllCustomers() {
+        return customerRepository.findAll();
+    }
+
+    @Transactional(readOnly = true)
     public Customer findCustomerById(Long id) {
-        return customerRepostory.findById(id)
-                .orElseThrow(()->new RuntimeException("Customer Not Found"));
+        return customerRepository.findById(id)
+                .orElseThrow(() -> new CustomerNotFoundException(id));
     }
-    public Customer saveCustomer(Customer customer){
-        return customerRepostory.save(customer);
+
+    @Transactional
+    public Customer saveCustomer(Customer customer) {
+        return customerRepository.save(customer);
     }
 }

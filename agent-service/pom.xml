@@ -12,20 +12,7 @@
     <artifactId>agent-service</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>agent-service</name>
-    <description>agent-service</description>
-    <url/>
-    <licenses>
-        <license/>
-    </licenses>
-    <developers>
-        <developer/>
-    </developers>
-    <scm>
-        <connection/>
-        <developerConnection/>
-        <tag/>
-        <url/>
-    </scm>
+    <description>AI agent acting on banking services through MCP</description>
     <properties>
         <java.version>25</java.version>
         <spring-ai.version>2.0.0</spring-ai.version>

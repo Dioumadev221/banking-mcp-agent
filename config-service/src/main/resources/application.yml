@@ -1,0 +1,30 @@
+server:
+  port: 8888
+
+spring:
+  application:
+    name: config-service
+  profiles:
+    # "native" serves the files bundled with this service instead of cloning a
+    # Git repository. A Git backend would make the platform depend on a second
+    # repository and on network access just to start, which is the wrong
+    # trade-off for a project meant to run from a single clone.
+    active: native
+  cloud:
+    config:
+      server:
+        native:
+          search-locations: classpath:/config-repo
+
+# Note the indentation: eureka is a root key, not a child of spring. Nesting it
+# under spring silently disables registration - the property is simply ignored.
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_SERVER:http://localhost:8761/eureka/}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info

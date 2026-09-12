@@ -1,0 +1,16 @@
+# Settings shared by every service that imports this config server.
+#
+# These values deliberately mirror the defaults each service already ships, so
+# the platform behaves identically whether the config server is running or not.
+# That property is what makes the config server an addition rather than a
+# prerequisite - and it is asserted by ConfigServiceApplicationTests.
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+logging:
+  level:
+    com.diouma: INFO
