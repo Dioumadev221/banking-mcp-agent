@@ -1,2 +1,4 @@
-/mvnw text eol=lf
+# mvnw is a POSIX shell script: it must keep LF endings and stay executable,
+# otherwise the Linux CI runner cannot launch it.
+mvnw text eol=lf
 *.cmd text eol=crlf

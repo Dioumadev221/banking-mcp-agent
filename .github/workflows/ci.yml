@@ -21,6 +21,13 @@ jobs:
           java-version: '25'
           cache: maven
 
+      # The repository is authored on Windows, which has no executable bit to
+      # record. The mode is set in the index, but a file added later can easily
+      # arrive as 100644 again and the runner then fails with "Permission
+      # denied" before any test runs.
+      - name: Make the Maven wrapper executable
+        run: chmod +x mvnw
+
       # The aggregator POM builds and tests all six services in one command.
       # Naming individual test classes, as this workflow used to, silently
       # skips every test added afterwards.
