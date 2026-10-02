@@ -119,8 +119,8 @@ LLM_MODEL=qwen2.5 docker compose up -d --force-recreate agent-service
 |---|---|---|
 | `discovery-service` | 8761 | Service registry (Netflix Eureka). |
 | `config-service` | 8888 | Centralised configuration (Spring Cloud Config). |
-| `customer-service` | 8056 | Customers, H2 in-memory database. |
-| `ebank-service` | 8057 | Bank accounts; validates the customer; **hosts the MCP server**. |
+| `customer-service` | 8056 | Customers; own PostgreSQL database, Flyway-managed schema. |
+| `ebank-service` | 8057 | Bank accounts; own PostgreSQL database; validates the customer; **hosts the MCP server**. |
 | `gateway-service` | 8058 | API gateway, routes built from the Eureka registry. |
 | `agent-service` | 8060 | AI agent (Spring AI + Ollama), **MCP client**. |
 
@@ -132,7 +132,8 @@ graph TD
     Agent -->|MCP: createAccount| Gateway[gateway-service]
     Gateway -->|/EBANK-SERVICE/mcp| Ebank[ebank-service<br/>MCP server]
     Ebank -->|OpenFeign via Eureka| Customer[customer-service]
-    Ebank --> DB[(H2)]
+    Ebank --> EbankDB[(PostgreSQL<br/>ebank_db)]
+    Customer --> CustomerDB[(PostgreSQL<br/>customer_db)]
     Discovery[discovery-service<br/>Eureka] --- Customer
     Discovery --- Ebank
     Discovery --- Gateway
@@ -328,8 +329,8 @@ CI runs the same command on every push.
 
 Java 25 · Spring Boot 4.1.0 · Spring Cloud 2025.1.2 (Eureka, Gateway,
 OpenFeign, LoadBalancer, Config) · Spring AI 2.0.0 (Ollama, MCP server and
-client) · H2 · Spring Data JPA · Lombok · springdoc-openapi · JUnit 5 ·
-Mockito · AssertJ · Docker Compose · Maven wrapper.
+client) · PostgreSQL · Flyway · Spring Data JPA · Lombok · springdoc-openapi ·
+JUnit 5 · Mockito · AssertJ · Testcontainers · Docker Compose · Maven wrapper.
 
 ## Project structure
 
@@ -347,10 +348,20 @@ Mockito · AssertJ · Docker Compose · Maven wrapper.
 └── pom.xml               Aggregator: builds and tests every service
 ```
 
+## Persistence
+
+Each service that stores data owns a private PostgreSQL database
+(`database-per-service`): nothing is shared, so a schema change in one service
+cannot break another. The schema is owned by **Flyway** versioned migrations,
+and Hibernate is set to `validate` only - it never alters the database, it just
+refuses to start if an entity and its migration have drifted apart. Integration
+tests run against a real PostgreSQL started in a throw-away **Testcontainers**
+container, so the migrations and the PostgreSQL dialect are exercised, not an
+H2 approximation. Connection details are injected through `DB_*` environment
+variables, never committed.
+
 ## Limitations
 
-- H2 runs in memory: data is reset on every restart. Deliberate for a demo,
-  unsuitable for anything else.
 - No authentication. The gateway is the natural place to add it and it is not
   done here.
 - The MCP server exposes a single tool. Deposits, withdrawals and transfers

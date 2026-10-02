@@ -35,10 +35,11 @@ class ConfigServiceApplicationTests {
 
     @Test
     void serves_customer_service_settings() throws Exception {
-        String body = get("/customer-service/default");
-
-        assertThat(body).contains("8056");
-        assertThat(body).contains("jdbc:h2:mem:customer-db");
+        // The datasource is deliberately not centralised: a connection string is
+        // environment specific (and a secret in production), so it stays with the
+        // service and is set through DB_* variables. The config server carries the
+        // port, which is the same everywhere.
+        assertThat(get("/customer-service/default")).contains("8056");
     }
 
     @Test
@@ -46,7 +47,6 @@ class ConfigServiceApplicationTests {
         String body = get("/ebank-service/default");
 
         assertThat(body).contains("8057");
-        assertThat(body).contains("jdbc:h2:mem:ebank-db");
         assertThat(body).contains("STREAMABLE");
     }
 

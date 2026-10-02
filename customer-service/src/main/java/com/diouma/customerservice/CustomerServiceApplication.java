@@ -32,6 +32,11 @@ public class CustomerServiceApplication {
     @ConditionalOnProperty(name = "demo.seed-customers", havingValue = "true", matchIfMissing = true)
     CommandLineRunner seedDemoCustomers(CustomerService customerService) {
         return args -> {
+            // Data persists in PostgreSQL now, so seed only an empty database;
+            // running again must not create the same customers a second time.
+            if (!customerService.getAllCustomers().isEmpty()) {
+                return;
+            }
             List<String> names = List.of("Diouma", "Seynabou", "Souleymane");
             names.forEach(name -> customerService.saveCustomer(Customer.builder()
                     .name(name)

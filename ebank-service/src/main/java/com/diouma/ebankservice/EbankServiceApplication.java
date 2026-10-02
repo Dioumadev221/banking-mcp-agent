@@ -36,6 +36,11 @@ public class EbankServiceApplication {
     @ConditionalOnProperty(name = "demo.seed-accounts", havingValue = "true", matchIfMissing = true)
     CommandLineRunner seedDemoAccounts(EbankService ebankService) {
         return args -> {
+            // Idempotent: the database now persists across restarts, so re-seeding
+            // would pile up duplicate accounts on every boot. Seed only when empty.
+            if (!ebankService.getAllBankAccounts().isEmpty()) {
+                return;
+            }
             try {
                 for (long customerId = 1; customerId <= 3; customerId++) {
                     ebankService.createAccount(AccountType.CURRENT_ACCOUNT, 5_000 * customerId, customerId);

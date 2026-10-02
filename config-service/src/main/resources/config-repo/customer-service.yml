@@ -1,6 +1,6 @@
+# Centralised settings override the defaults customer-service ships. Only values
+# that are the same in every environment belong here: the datasource is
+# environment specific (and a secret in production), so it stays with the
+# service and is supplied through DB_* environment variables instead.
 server:
   port: 8056
-
-spring:
-  datasource:
-    url: jdbc:h2:mem:customer-db

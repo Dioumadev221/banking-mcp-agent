@@ -1,9 +1,11 @@
+# Centralised settings override the defaults ebank-service ships. Only values
+# that are identical in every environment belong here: the datasource is
+# environment specific (and a secret in production), so it stays with the service
+# and is supplied through DB_* environment variables instead.
 server:
   port: 8057
 
 spring:
-  datasource:
-    url: jdbc:h2:mem:ebank-db
   ai:
     mcp:
       server:

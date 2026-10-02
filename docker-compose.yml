@@ -36,6 +36,22 @@ services:
       retries: 10
       start_period: 20s
 
+  # One PostgreSQL per service: each service owns its data, nothing is shared.
+  customer-db:
+    image: postgres:17-alpine
+    container_name: customer-db
+    environment:
+      POSTGRES_DB: customer_db
+      POSTGRES_USER: customer
+      POSTGRES_PASSWORD: customer
+    volumes:
+      - customer-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U customer -d customer_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
   customer-service:
     build: ./customer-service
     container_name: customer-service
@@ -44,8 +60,13 @@ services:
     environment:
       CONFIG_SERVER: http://config-service:8888
       EUREKA_SERVER: http://discovery-service:8761/eureka/
+      DB_URL: jdbc:postgresql://customer-db:5432/customer_db
+      DB_USERNAME: customer
+      DB_PASSWORD: customer
     depends_on:
       config-service:
+        condition: service_healthy
+      customer-db:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8056/actuator/health"]
@@ -53,6 +74,21 @@ services:
       timeout: 5s
       retries: 10
       start_period: 20s
+
+  ebank-db:
+    image: postgres:17-alpine
+    container_name: ebank-db
+    environment:
+      POSTGRES_DB: ebank_db
+      POSTGRES_USER: ebank
+      POSTGRES_PASSWORD: ebank
+    volumes:
+      - ebank-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ebank -d ebank_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
   ebank-service:
     build: ./ebank-service
@@ -62,10 +98,15 @@ services:
     environment:
       CONFIG_SERVER: http://config-service:8888
       EUREKA_SERVER: http://discovery-service:8761/eureka/
+      DB_URL: jdbc:postgresql://ebank-db:5432/ebank_db
+      DB_USERNAME: ebank
+      DB_PASSWORD: ebank
     depends_on:
       # Waits for the owner service: account creation validates the customer,
       # and the startup seeding would otherwise fail silently.
       customer-service:
+        condition: service_healthy
+      ebank-db:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8057/actuator/health"]
@@ -116,3 +157,8 @@ services:
     depends_on:
       gateway-service:
         condition: service_healthy
+
+volumes:
+  # Named volumes keep each database's data across restarts.
+  customer-db-data:
+  ebank-db-data:
