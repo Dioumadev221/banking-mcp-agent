@@ -1,5 +1,6 @@
 package com.diouma.ebankservice.controller;
 
+import com.diouma.ebankservice.entities.AccountTransaction;
 import com.diouma.ebankservice.entities.BankAccount;
 import com.diouma.ebankservice.service.EbankService;
 import org.springframework.http.HttpStatus;
@@ -31,9 +32,29 @@ public class EbankRestController {
         return ebankService.getAccountById(id);
     }
 
+    @GetMapping("/accounts/{id}/transactions")
+    public List<AccountTransaction> getStatement(@PathVariable String id) {
+        return ebankService.getStatement(id);
+    }
+
     @PostMapping("/accounts")
     @ResponseStatus(HttpStatus.CREATED)
     public BankAccount createAccount(@RequestBody CreateAccountRequest request) {
         return ebankService.createAccount(request.type(), request.balance(), request.customerId());
+    }
+
+    @PostMapping("/accounts/{id}/deposits")
+    public BankAccount deposit(@PathVariable String id, @RequestBody AmountRequest request) {
+        return ebankService.deposit(id, request.amount());
+    }
+
+    @PostMapping("/accounts/{id}/withdrawals")
+    public BankAccount withdraw(@PathVariable String id, @RequestBody AmountRequest request) {
+        return ebankService.withdraw(id, request.amount());
+    }
+
+    @PostMapping("/transfers")
+    public void transfer(@RequestBody TransferRequest request) {
+        ebankService.transfer(request.fromAccountId(), request.toAccountId(), request.amount());
     }
 }

@@ -208,14 +208,30 @@ Three customers are seeded on startup.
 |---|---|---|
 | `GET` | `/accounts` | list accounts |
 | `GET` | `/accounts/{id}` | one account, `404` if unknown |
+| `GET` | `/accounts/{id}/transactions` | the account's statement, most recent first |
 | `POST` | `/accounts` | create an account, `201` |
+| `POST` | `/accounts/{id}/deposits` | pay money in |
+| `POST` | `/accounts/{id}/withdrawals` | take money out, `422` if the balance is too low |
+| `POST` | `/transfers` | move money between two accounts, atomically |
 | `POST` | `/mcp` | MCP server endpoint (streamable HTTP) |
 
 ```bash
 curl -X POST http://localhost:8057/accounts \
   -H "Content-Type: application/json" \
   -d '{"type":"SAVING-ACCOUNT","balance":1500,"customerId":2}'
+
+curl -X POST http://localhost:8057/transfers \
+  -H "Content-Type: application/json" \
+  -d '{"fromAccountId":"<id-a>","toAccountId":"<id-b>","amount":300}'
 ```
+
+Money is held as `BigDecimal` and stored as `numeric(19,4)`, never a
+floating-point type: an account balance has no room for rounding error. A
+transfer is a single transaction — the debit, the credit and both ledger rows
+commit together or not at all — and the balance check runs before any write, so
+an impossible transfer leaves both accounts untouched. Concurrent updates to the
+same account are caught by optimistic locking (a `@Version` column) and surface
+as `409`, not a lost write.
 
 Errors are returned as RFC 7807 `ProblemDetail`, the same shape Spring uses for
 its own errors:
@@ -256,7 +272,10 @@ For example <http://localhost:8058/EBANK-SERVICE/accounts>.
 ## Model Context Protocol
 
 - `ebank-service` is an **MCP server** (`spring-ai-starter-mcp-server-webmvc`).
-  Its account-creation capability is published with `@McpTool`.
+  Its banking capabilities are published with `@McpTool`: `createAccount`,
+  `deposit`, `withdraw`, `transfer`, `getBalance` and `getStatement`. Each one
+  validates before it acts, so the model can request an operation but never
+  bypass a rule.
 - `agent-service` is an **MCP client** (`spring-ai-starter-mcp-client`). It
   discovers the available tools at startup and offers them to the model.
 - Transport is **streamable HTTP**, not stdio: the two run in separate
@@ -364,9 +383,8 @@ variables, never committed.
 
 - No authentication. The gateway is the natural place to add it and it is not
   done here.
-- The MCP server exposes a single tool. Deposits, withdrawals and transfers
-  would each need the same validation treatment before being exposed to a
-  model.
+- Optimistic locking surfaces a concurrent modification as `409`, but the
+  caller is left to retry; the service does not retry on their behalf.
 
 ## License
 

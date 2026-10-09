@@ -1,16 +1,19 @@
 package com.diouma.ebankservice.entities;
 
 import com.diouma.ebankservice.models.Customer;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Transient;
+import jakarta.persistence.Version;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 
 @Entity
@@ -23,7 +26,13 @@ public class BankAccount {
     @Id
     private String id;
 
-    private double balance;
+    /**
+     * Money is BigDecimal, never double. A double cannot represent 0.10
+     * exactly, so sums drift; on an account balance that is a bug, not a
+     * rounding detail. The column is numeric(19,4) to match.
+     */
+    @Column(precision = 19, scale = 4)
+    private BigDecimal balance;
 
     @Enumerated(EnumType.STRING)
     private AccountType type;
@@ -31,6 +40,16 @@ public class BankAccount {
     private Instant createdAt;
 
     private long customerId;
+
+    /**
+     * Optimistic locking. Hibernate stamps every update with this version and
+     * refuses one whose version is stale, so two operations that read the same
+     * balance and both try to write cannot silently lose one of the changes:
+     * the second fails and can be retried. No row is locked while a caller
+     * thinks, which a pessimistic lock would do.
+     */
+    @Version
+    private Long version;
 
     /**
      * Owner details, fetched from customer-service on read.

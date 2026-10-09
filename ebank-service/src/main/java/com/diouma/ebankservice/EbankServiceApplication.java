@@ -11,6 +11,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.annotation.Bean;
 
+import java.math.BigDecimal;
+
 @SpringBootApplication
 @EnableFeignClients
 public class EbankServiceApplication {
@@ -43,8 +45,10 @@ public class EbankServiceApplication {
             }
             try {
                 for (long customerId = 1; customerId <= 3; customerId++) {
-                    ebankService.createAccount(AccountType.CURRENT_ACCOUNT, 5_000 * customerId, customerId);
-                    ebankService.createAccount(AccountType.SAVING_ACCOUNT, 1_200 * customerId, customerId);
+                    ebankService.createAccount(AccountType.CURRENT_ACCOUNT,
+                            BigDecimal.valueOf(5_000 * customerId), customerId);
+                    ebankService.createAccount(AccountType.SAVING_ACCOUNT,
+                            BigDecimal.valueOf(1_200 * customerId), customerId);
                 }
                 log.info("Seeded 6 demo accounts for customers 1 to 3");
             } catch (Exception exception) {

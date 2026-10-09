@@ -2,6 +2,7 @@ package com.diouma.ebankservice.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -25,6 +26,21 @@ public class ApiExceptionHandler {
         // 422 rather than 404: the account resource is a valid target, it is the
         // owner it refers to that does not exist.
         return problem(HttpStatus.UNPROCESSABLE_ENTITY, "Unknown customer", exception.getMessage());
+    }
+
+    @ExceptionHandler(InsufficientBalanceException.class)
+    ProblemDetail handleInsufficientBalance(InsufficientBalanceException exception) {
+        // 422 rather than 400: the request is well formed, the account simply
+        // does not hold enough. Distinct from a malformed amount, which is 400.
+        return problem(HttpStatus.UNPROCESSABLE_ENTITY, "Insufficient balance", exception.getMessage());
+    }
+
+    @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
+    ProblemDetail handleConcurrentModification(ObjectOptimisticLockingFailureException exception) {
+        // 409 Conflict: another operation changed the account between our read
+        // and our write. Nothing was committed; the caller can safely retry.
+        return problem(HttpStatus.CONFLICT, "Concurrent modification",
+                "The account changed during the operation; please retry.");
     }
 
     /** Covers InvalidAccountTypeException and the other argument checks. */
